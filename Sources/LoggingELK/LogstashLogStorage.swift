@@ -20,10 +20,12 @@ actor LogstachLogStorage {
 		self.data.append(data)
 	}
 
-	func popData() -> Data {
-		let data = self.data
-		self.data = Data()
-		return data
+	func getData() -> Data {
+		return self.data
+	}
+
+	func popData(size: Int) {
+		self.data = self.data.dropFirst(size)
 	}
 
 	private enum Constants {

@@ -29,7 +29,7 @@ extension LogstashLogHandler {
   /// stored log data `ByteBuffer` is freed and the lock is lifted
   static func uploadLogData() async throws {       // swiftlint:disable:this cyclomatic_complexity function_body_length
 
-    let data = await storage.popData()
+    let data = await storage.getData()
 
     guard let url = url else {
       fatalError("incorrect configuration of host and port")
@@ -66,6 +66,8 @@ extension LogstashLogHandler {
           "url": .stringConvertible(url),
         ]
       )
-    }
+		} else {
+			await storage.popData(size: data.count)
+		}
   }
 }
