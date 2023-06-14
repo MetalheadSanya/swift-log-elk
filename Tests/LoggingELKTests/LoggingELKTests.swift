@@ -16,11 +16,11 @@ final class LoggingELKTests: XCTestCase {
                                  port: 31311,
                                  backgroundActivityLogger: Logger(label: "backgroundActivity-logstashHandler",
                                                                   factory: StreamLogHandler.standardOutput),
-                                 uploadInterval: TimeAmount.seconds(1000),
+                                 uploadInterval: 1000,
                                  logStorageSize: 1000)
         
         // Cancel the actual uploading to Logstash
-        LogstashLogHandler.uploadTask?.cancel(promise: nil)
+        LogstashLogHandler.timer = nil
         
         self.logstashHandler = LogstashLogHandler(label: "logstash-test")
 

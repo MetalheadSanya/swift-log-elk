@@ -35,40 +35,6 @@ extension LogstashLogHandler {
         return encoder
     }()
 
-    /// Creates the HTTP request which stays constant during the entire lifetime of the `LogstashLogHandler`
-    /// Sets some default headers, eg. a dynamically adjusted "Keep-Alive" header
-    static func createHTTPRequest() -> HTTPClient.Request {
-        guard let useHTTPS = Self.useHTTPS,
-              let hostname = Self.hostname,
-              let port = Self.port,
-              let uploadInterval = Self.uploadInterval else {
-            fatalError(Error.notYetSetup.rawValue)
-        }
-        
-        var httpRequest: HTTPClient.Request
-
-        do {
-            httpRequest = try HTTPClient.Request(url: "\(useHTTPS ? "https" : "http")://\(hostname):\(port)", method: .POST)
-        } catch {
-            fatalError("Logstash HTTP Request couldn't be created. Check if the hostname and port are valid. \(error)")
-        }
-
-        // Set headers that always stay consistent over all requests
-        httpRequest.headers.add(name: "Content-Type", value: "application/json")
-        httpRequest.headers.add(name: "Accept", value: "application/json")
-        // Keep-alive header to keep the connection open
-        httpRequest.headers.add(name: "Connection", value: "keep-alive")
-        if uploadInterval <= TimeAmount.seconds(10) {
-            httpRequest.headers.add(name: "Keep-Alive",
-                                    value: "timeout=\(Int((uploadInterval.rawSeconds * 3).rounded(.toNearestOrAwayFromZero))), max=100")
-        } else {
-            httpRequest.headers.add(name: "Keep-Alive",
-                                    value: "timeout=30, max=100")
-        }
-
-        return httpRequest
-    }
-
     /// Encodes the `Logger.Level`, `Logger.Message`, `Logger.Metadata`, and
     /// an automatically created timestamp to a HTTP body in the JSON format
     func encodeLogData(level: Logger.Level,
