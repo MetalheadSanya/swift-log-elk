@@ -24,7 +24,7 @@ extension LogstashLogHandler {
     /// The `JSONEncoder` used to encode the `LogstashHTTPBody` to JSON
     private static let jsonEncoder: JSONEncoder = {
         let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes, .sortedKeys]
+        encoder.outputFormatting = [.withoutEscapingSlashes, .sortedKeys]
         encoder.dateEncodingStrategy = .iso8601
         encoder.dataEncodingStrategy = .base64
         encoder.nonConformingFloatEncodingStrategy = .convertToString(
