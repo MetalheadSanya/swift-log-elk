@@ -69,12 +69,7 @@ extension LogstashLogHandler {
         Self.byteBuffer?.clear()
         
         Self.byteBufferLock.unlock(withValue: false)
-        
-        // Setup of HTTP requests that is used for all transmissions
-        if Self.httpRequest == nil {
-            Self.httpRequest = Self.createHTTPRequest()
-        }
-        
+
         var pendingHTTPRequests: [EventLoopFuture<HTTPClient.Response>] = []
         
         // Read data from temp byte buffer until it doesn't contain any readable bytes anymore
@@ -83,10 +78,11 @@ extension LogstashLogHandler {
                   let logData = tempByteBuffer.readSlice(length: logDataSize) else {
                       fatalError("Error reading log data from byte buffer")
                   }
-            
-            guard var httpRequest = Self.httpRequest else {
-                fatalError("HTTP Request not properly initialized")
-            }
+            var httpRequest = Self.httpRequest ?? Self.createHTTPRequest()
+
+						if Self.httpRequest == nil {
+								Self.httpRequest = httpRequest
+						}
             
             httpRequest.body = .byteBuffer(logData)
             
