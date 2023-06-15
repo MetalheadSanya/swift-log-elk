@@ -35,6 +35,8 @@ extension LogstashLogHandler {
 
     let data = await storage.getData()
 
+		guard !data.isEmpty else { return }
+
     guard let url = url else {
       fatalError("incorrect configuration of host and port")
     }
