@@ -40,8 +40,8 @@ extension LogstashLogHandler {
     }
 
     let keepAlive: String
-    if uploadInterval ?? 30 < 10 {
-      keepAlive = "timeout=\(Int(uploadInterval ?? 10 * 3)), max=100"
+    if let uploadInterval = uploadInterval, uploadInterval < 10 && uploadInterval != 0 {
+      keepAlive = "timeout=\(Int(uploadInterval * 3)), max=100"
     } else {
       keepAlive = "timeout=30, max=100"
     }
