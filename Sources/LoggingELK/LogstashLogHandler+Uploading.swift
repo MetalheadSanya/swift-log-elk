@@ -15,14 +15,16 @@ extension LogstashLogHandler {
     }
 
     timer = Task {
-      try await Task.sleep(nanoseconds: UInt64(initialDelay * TimeInterval(NSEC_PER_SEC)))
-			do {
-				try await uploadLogData()
-			} catch {
-				Self.backgroundActivityLogger?.error("\(error)")
+			while true {
+				try await Task.sleep(nanoseconds: UInt64(initialDelay * TimeInterval(NSEC_PER_SEC)))
+				try Task.checkCancellation()
+				do {
+					try await uploadLogData()
+				} catch {
+					Self.backgroundActivityLogger?.error("\(error)")
+				}
+				try Task.checkCancellation()
 			}
-      Self.timer = nil
-      scheduleUploadTask(initialDelay: initialDelay)
     }
   }
 
