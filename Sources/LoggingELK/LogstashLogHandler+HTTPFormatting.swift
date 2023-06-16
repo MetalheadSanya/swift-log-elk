@@ -6,9 +6,7 @@
 //
 
 import Foundation
-import NIO
 import Logging
-import AsyncHTTPClient
 
 extension LogstashLogHandler {
     /// A struct used to encode the `Logger.Level`, `Logger.Message`, `Logger.Metadata`, and a timestamp

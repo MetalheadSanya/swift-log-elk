@@ -20,10 +20,6 @@ public struct LogstashLogHandler: LogHandler {
 	static var backgroundActivityLogger: Logger?
 	/// Represents a certain amount of time which serves as a delay between the triggering of the uploading to Logstash
 	static var uploadInterval: TimeInterval?
-	/// Specifies how large the log storage `ByteBuffer` must be at least
-	static var logStorageSize: Int?
-	/// Specifies how large the log storage `ByteBuffer` with all the current uploading buffers can be at the most
-	static var maximumTotalLogStorageSize: Int?
 
 	static var urlSession: URLSession = .shared
 	/// The `HTTPClient.Request` which stays consistent (except the body) over all uploadings to Logstash
@@ -33,9 +29,6 @@ public struct LogstashLogHandler: LogHandler {
 
 	/// The log storage byte buffer which serves as a cache of the log data entires
 	static var storage: LogstachLogStorage = .init()
-
-	/// Keeps track of how much memory is allocated in total
-	static var totalByteBufferSize: Int?
 
 	/// The default `Logger.Level` of the `LogstashLogHandler`
 	/// Logging entries below this `Logger.Level` won't get logged at all
@@ -79,17 +72,9 @@ public struct LogstashLogHandler: LogHandler {
 		self.url = URL(string: "\(useHTTPS ? "https" : "http")://\(hostname):\(port)")
 		Self.backgroundActivityLogger = backgroundActivityLogger
 		Self.uploadInterval = uploadInterval
-		// If the double minimum log storage size is larger than maximum log storage size throw error
-		if maximumTotalLogStorageSize.nextPowerOf2() < (2 * logStorageSize.nextPowerOf2()) {
-			fatalError(Error.maximumLogStorageSizeTooLow.rawValue)
-		}
-		// Round up to the power of two since ByteBuffer automatically allocates in these steps
-		Self.logStorageSize = logStorageSize.nextPowerOf2()
-		Self.maximumTotalLogStorageSize = maximumTotalLogStorageSize.nextPowerOf2()
 
 		// Need to be wrapped in a class since those properties can be mutated
 		Self.storage = .init()
-		Self.totalByteBufferSize = maximumTotalLogStorageSize
 
 		// Check if backgroundActivityLogger doesn't use the LogstashLogHandler as a logging backend
 		if let usesLogstashHandlerValue = backgroundActivityLogger[metadataKey: "super-secret-is-a-logstash-loghandler"],
