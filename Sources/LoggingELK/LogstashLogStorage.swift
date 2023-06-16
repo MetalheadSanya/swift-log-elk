@@ -8,16 +8,53 @@
 import Foundation
 
 actor LogstachLogStorage {
+	private let fileUrl: URL
+
 	var data = Data()
 
-	func appendData(_ data: Data) {
-		guard !data.isEmpty else {
-			self.data = data
-			return
+	init() {
+		var cacheFolder = FileManager.default.temporaryDirectory
+		if let cache = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
+			cacheFolder = cache
 		}
 
-		self.data.append(contentsOf: Constants.newLineCharacter)
-		self.data.append(data)
+		fileUrl = cacheFolder.appendingPathComponent("log.txt")
+		if FileManager.default.fileExists(atPath: fileUrl.absoluteString) {
+			do {
+				data = try Data(contentsOf: fileUrl, options: [])
+			} catch {
+				LogstashLogHandler.backgroundActivityLogger?.error(
+					"Error while read log file: \(error)"
+				)
+			}
+		}
+	}
+
+	private func updateLogFile() {
+		if FileManager.default.fileExists(atPath: fileUrl.absoluteString) {
+			do {
+				try FileManager.default.removeItem(at: fileUrl)
+				try data.write(to: fileUrl, options: .atomic)
+			} catch {
+				LogstashLogHandler.backgroundActivityLogger?.error(
+					"Error while write log file: \(error)"
+				)
+			}
+		}
+	}
+
+	private func readLogFile() {
+
+	}
+
+	func appendData(_ data: Data) {
+		if data.isEmpty {
+			self.data = data
+		} else {
+			self.data.append(contentsOf: Constants.newLineCharacter)
+			self.data.append(data)
+		}
+		updateLogFile()
 	}
 
 	func getData() -> Data {
@@ -25,7 +62,12 @@ actor LogstachLogStorage {
 	}
 
 	func popData(size: Int) {
-		self.data = self.data.dropFirst(size)
+		if size == data.count {
+			self.data = Data()
+		} else {
+			self.data = self.data.dropFirst(size + 1)
+		}
+		updateLogFile()
 	}
 
 	private enum Constants {
